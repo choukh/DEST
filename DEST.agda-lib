@@ -1,0 +1,6 @@
+name: DEST
+depend:
+  cubical
+  standard-library
+include: src
+flags: -W noUnsupportedIndexedMatch
