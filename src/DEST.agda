@@ -155,10 +155,10 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
   R = ｛ x ∣ x ⟨∉⟩ x ｝
 
   noParadox₁ : R ∈₁ R ↔ R ∉₂ R
-  noParadox₁ = →: (λ R∈₁R R∈₂R → compE₁ R∈₁R R∈₂R) ←: (λ R∈₂R → compI₁ R∈₂R)
+  noParadox₁ = R ∈₁ R ↔⟨ comprehension _ .snd R .fst ⟩ R ∉₂ R ↔∎
 
   noParadox₂ : R ∈₂ R ↔ R ∉₁ R
-  noParadox₂ = →: (λ R∈₂R R∈₁R → compE₂ R∈₂R R∈₁R) ←: (λ R∈₁R → compI₂ R∈₁R)
+  noParadox₂ = R ∈₂ R ↔⟨ comprehension _ .snd R .snd ⟩ R ∉₁ R ↔∎
 
   ¬isUSetR : ¬ isUSet R
   ¬isUSetR isUSetR = noncontradiction $
@@ -193,5 +193,7 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
     (λ _ → isPropΠ λ _ → isProp× (isProp↔ (isProp∈₁ _ _) (isProp⟦⟧₂ _))
                                  (isProp↔ (isProp∈₂ _ _) (isProp⟦⟧₁ _)))
     (extensionality _ _ λ z →
-      →: (λ z∈₁A → H₂ z .snd .from (duality P z .from (H₁ z .fst .to z∈₁A)))
-      ←: (λ z∈₁B → H₁ z .fst .from (duality P z .to   (H₂ z .snd .to z∈₁B))))
+      z ∈₁ A    ↔⟨ H₁ z .fst ⟩
+      ⟦ P z ⟧₂  ↔˘⟨ duality P z ⟩
+      ⟦ P z ⟧₁  ↔˘⟨ H₂ z .snd ⟩
+      z ∈₂ B    ↔∎)
