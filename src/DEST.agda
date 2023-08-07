@@ -96,8 +96,8 @@ record Language : Type₁ where
     field
       excludedMiddle₁ : ∀ φ → ⟦ φ ⟨∨⟩ ⟨¬⟩ φ ⟧₁
       excludedMiddle₂ : ∀ φ → ⟦ φ ⟨∨⟩ ⟨¬⟩ φ ⟧₂
-      extensionality : ∀ x y → (∀ z → z ∈₁ x ↔ z ∈₂ y) → x ≡ y
-      uniformity     : ∀ A B → A ⊆ B → allUSet B → isUSet A
+      extensionality  : ∀ x y → (∀ z → z ∈₁ x ↔ z ∈₂ y) → x ≡ y
+      uniformity      : ∀ A B → A ⊆ B → allUSet B → isUSet A
 
     commitment : (Domain → Formula) → Type
     commitment P = Σ A ∶ Domain , ∀ x → (x ∈₁ A ↔ ⟦ P x ⟧₂) × (x ∈₂ A ↔ ⟦ P x ⟧₁)
