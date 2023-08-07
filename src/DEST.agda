@@ -257,11 +257,11 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
 
   -- 任意集合能构成二类单集
   →S₁ : ∀ x → S₁ x
-  →S₁ a = ｛ x ∣ x ⟨=⟩ a ｝ , λ z → →: compE₁ ←: compI₁
+  →S₁ a = ｛ x ∣ x ⟨=⟩ a ｝ , λ x → comprehension _ .snd x .fst
 
   -- 任意集合能构成二类单集
   →S₂ : ∀ x → S₂ x
-  →S₂ a = ｛ x ∣ x ⟨=⟩ a ｝ , λ z → →: compE₂ ←: compI₂
+  →S₂ a = ｛ x ∣ x ⟨=⟩ a ｝ , λ x → comprehension _ .snd x .snd
 
   -- 能同时构成两类单集的集合是均质集
   S₁→S₂→isUSet : ∀ x → S₁ x → S₂ x → isUSet x
