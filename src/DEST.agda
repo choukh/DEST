@@ -43,9 +43,6 @@ record Language : Type₁ where
   allUSet : Domain → Type
   allUSet A = ∀ x → (x ∈₁ A ∨ x ∈₂ A) → isUSet x
 
-  -- 均质集之类型
-  USet = Σ Domain isUSet
-
   -- 公式
   data Formula : Type where
     ⟨⊥⟩ : Formula
