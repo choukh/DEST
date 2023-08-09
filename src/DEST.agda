@@ -260,27 +260,27 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
     R ∉₁ R ↔∎
 
   -- 非良基全集
-  ℕ𝕎𝔽 : Domain
-  ℕ𝕎𝔽 = ｛ x ∣ x ⟨∈⟩ x ｝
+  NWF : Domain
+  NWF = ｛ x ∣ x ⟨∈⟩ x ｝
 
-  ∈₁ℕ𝕎𝔽 : (x : Domain) → x ∈₁ ℕ𝕎𝔽 ↔ x ∈₂ x
-  ∈₁ℕ𝕎𝔽 x = comprehension _ it .snd x .fst
+  ∈₁NWF : (x : Domain) → x ∈₁ NWF ↔ x ∈₂ x
+  ∈₁NWF x = comprehension _ it .snd x .fst
 
-  ∈₂ℕ𝕎𝔽 : (x : Domain) → x ∈₂ ℕ𝕎𝔽 ↔ x ∈₁ x
-  ∈₂ℕ𝕎𝔽 x = comprehension _ it .snd x .snd
+  ∈₂NWF : (x : Domain) → x ∈₂ NWF ↔ x ∈₁ x
+  ∈₂NWF x = comprehension _ it .snd x .snd
 
   -- 非良基全集是异质集
-  ¬isUSetℕ𝕎𝔽 : ¬ isUSet ℕ𝕎𝔽
-  ¬isUSetℕ𝕎𝔽 isUSetℕ𝕎𝔽 = noncontradiction $
+  ¬isUSetNWF : ¬ isUSet NWF
+  ¬isUSetNWF isUSetNWF = noncontradiction $
     R ∈₁ R ↔⟨ aux R ⟩
     R ∈₂ R ↔⟨ noParadox₂ ⟩
     R ∉₁ R ↔∎
     where
     aux : (x : Domain) → x ∈₁ x ↔ x ∈₂ x
     aux x =
-      x ∈₁ x    ↔˘⟨ ∈₂ℕ𝕎𝔽 x ⟩
-      x ∈₂ ℕ𝕎𝔽  ↔˘⟨ isUSetℕ𝕎𝔽 x ⟩
-      x ∈₁ ℕ𝕎𝔽  ↔⟨ ∈₁ℕ𝕎𝔽 x ⟩
+      x ∈₁ x    ↔˘⟨ ∈₂NWF x ⟩
+      x ∈₂ NWF  ↔˘⟨ isUSetNWF x ⟩
+      x ∈₁ NWF  ↔⟨ ∈₁NWF x ⟩
       x ∈₂ x    ↔∎
 
   -- 能构成一类单集
