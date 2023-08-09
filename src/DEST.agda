@@ -130,8 +130,11 @@ record Language : Type₁ where
   ⟨⊤⟩ : Formula
   ⟨⊤⟩ = ⟨¬⟩ ⟨⊥⟩
 
-  _⟨∉⟩_ : Domain → Predicate
+  _⟨∉⟩_ : Domain → Domain → Formula
   x ⟨∉⟩ y = ⟨¬⟩ (x ⟨∈⟩ y)
+
+  _⟨↔⟩_ : Formula → Formula → Formula
+  φ ⟨↔⟩ ψ = (φ ⟨→⟩ ψ) ⟨∧⟩ (ψ ⟨→⟩ φ)
 
   -- 合式公式实例
   instance
