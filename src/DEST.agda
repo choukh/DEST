@@ -35,11 +35,11 @@ record Language : Type₁ where
   _⊆_ : Domain → Domain → Type
   A ⊆ B = ∀ x → (x ∈₁ A → x ∈₁ B) ∨ (x ∈₂ A → x ∈₂ B)
 
-  -- 均质集 (uniform set)
+  -- 是均质集 (is uniform set)
   isUSet : Domain → Type
   isUSet A = ∀ x → x ∈₁ A ↔ x ∈₂ A
 
-  -- 均质集之集 (set of uniform set)
+  -- 是均质集之集 (is set of uniform set)
   allUSet : Domain → Type
   allUSet A = ∀ x → (x ∈₁ A ∨ x ∈₂ A) → isUSet x
 
@@ -55,7 +55,7 @@ record Language : Type₁ where
     ⟨∀⟩_ : (Domain → Formula) → Formula
     ⟨∃⟩_ : (Domain → Formula) → Formula
 
-  -- 合式公式: 非绑定变量要求均质集
+  -- 是合式公式: 非绑定变量要求均质集
   isWFF : Domain → Formula → Type
   isWFF b ⟨⊥⟩ = ⊤
   isWFF b (x ⟨∈⟩ y) = (isUSet x ∨ x ≡ b) × (isUSet y ∨ y ≡ b)
@@ -70,11 +70,11 @@ record Language : Type₁ where
   Predicate : Type
   Predicate = Domain → Formula
 
-  -- 合式谓词
+  -- 是合式谓词
   isWFP : Predicate → Type
   isWFP P = ∀ {x} → isWFF x (P x)
 
-  -- 合式句子
+  -- 是合式句子
   isWFS : Predicate → Type
   isWFS P = ∀ {x y} → isWFF x (P y)
 
