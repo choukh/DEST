@@ -46,6 +46,7 @@ record Language : Type₁ where
   -- 均质集之类型
   USet = Σ Domain isUSet
 
+  -- 公式
   data Formula : Type where
     ⟨⊥⟩ : Formula
     -- 公式只能由一种属于关系构成
@@ -65,8 +66,8 @@ record Language : Type₁ where
   isWFF b (φ ⟨∧⟩ ψ) = isWFF b φ × isWFF b ψ
   isWFF b (φ ⟨∨⟩ ψ) = isWFF b φ × isWFF b ψ
   isWFF b (φ ⟨→⟩ ψ) = isWFF b φ × isWFF b ψ
-  isWFF b (⟨∀⟩ φ) = ∀ x → isWFF b (φ x)
-  isWFF b (⟨∃⟩ φ) = ∀ x → isWFF b (φ x)
+  isWFF b (⟨∀⟩ φ) = ∀ x → isUSet x → isWFF b (φ x)
+  isWFF b (⟨∃⟩ φ) = ∀ x → isUSet x → isWFF b (φ x)
 
   -- 谓词 (开公式)
   Predicate : Type
@@ -248,6 +249,53 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
     R ∈₁ R ↔⟨ isUSetR R ⟩
     R ∈₂ R ↔⟨ noParadox₂ ⟩
     R ∉₁ R ↔∎
+
+  -- 能构成一类单集
+  S₁ : Domain → Type
+  S₁ x = Σ y ∶ Domain , ∀ z → z ∈₁ y ↔ z ≡ x
+
+  -- 能构成二类单集
+  S₂ : Domain → Type
+  S₂ x = Σ y ∶ Domain , ∀ z → z ∈₂ y ↔ z ≡ x
+
+  -- 均质集能构成一类单集
+  isUSet→S₁ : ∀ a → isUSet a → S₁ a
+  isUSet→S₁ a us =
+    let instance
+      wfp : isWFP (_⟨=⟩ a)
+      wfp = inr refl , inl us
+    in ｛ x ∣ x ⟨=⟩ a ｝ , λ z → →: elim₁ ←: intro₁
+
+  -- 均质集能构成二类单集
+  isUSet→S₂ : ∀ a → isUSet a → S₂ a
+  isUSet→S₂ a us =
+    let instance
+      wfp : isWFP (_⟨=⟩ a)
+      wfp = inr refl , inl us
+    in ｛ x ∣ x ⟨=⟩ a ｝ , λ z → →: elim₂ ←: intro₂
+
+  -- 能同时构成两类单集的集合是均质集
+  S₁→S₂→isUSet : ∀ a → S₁ a → S₂ a → isUSet a
+  S₁→S₂→isUSet a (｛a｝₁ , H₁) (｛a｝₂ , H₂) = ≈→isUSet a≈a′
+    where
+    ｛a｝₁≈｛a｝₂ : ｛a｝₁ ≈ ｛a｝₂
+    ｛a｝₁≈｛a｝₂ x =
+      x ∈₁ ｛a｝₁ ↔⟨ H₁ x ⟩
+      x ≡ a     ↔˘⟨ H₂ x ⟩
+      x ∈₂ ｛a｝₂ ↔∎
+    wfp : isWFP λ x → ⟨∃⟩ λ y → (x ⟨∈⟩ y) ⟨∧⟩ (y ⟨∈⟩ ｛a｝₁)
+    wfp x us = (inr refl , inl us) , inl us , inl (≈→isUSet ｛a｝₁≈｛a｝₂)
+    a′ : Domain
+    a′ = ｛ x ∣ ⟨∃⟩ (λ y → (x ⟨∈⟩ y) ⟨∧⟩ (y ⟨∈⟩ ｛a｝₁)) ｝ ⦃ wfp ⦄
+    a≈a′ : a ≈ a′
+    _↔_.to   (a≈a′ x) x∈₁a  = intro₂ ⦃ wfp = wfp ⦄ ∣ a , x∈₁a , H₁ a .from refl ∣₁
+    _↔_.from (a≈a′ x) x∈₂a′ = ∥∥₁-rec (isProp∈₁ _ _) aux (elim₂ ⦃ wfp = wfp ⦄ x∈₂a′) where
+      aux : (Σ y ∶ Domain , x ∈₁ y × y ∈₁ ｛a｝₁) → x ∈₁ a
+      aux (y , x∈₁y , y∈₁｛a｝₁) = subst (x ∈₁_) (H₁ y .to y∈₁｛a｝₁) x∈₁y
+
+  -- 一个集合是均质集当且仅当它能同时构成两类单集
+  isUSet↔S₁×S₂ : ∀ x → isUSet x ↔ (S₁ x × S₂ x)
+  isUSet↔S₁×S₂ x = →: (λ H → isUSet→S₁ x H , isUSet→S₂ x H) ←: uncurry (S₁→S₂→isUSet x)
 
   -- 公式的对偶性
   duality : (P : Predicate) → ⦃ isWFS P ⦄ → (x : Domain) → ⟦ P x ⟧₁ ↔ ⟦ P x ⟧₂
