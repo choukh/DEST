@@ -138,8 +138,11 @@ record Language : Type₁ where
     ⊤-wff : ∀ {x} → isWFF x ⟨⊤⟩
     ⊤-wff = tt , tt
 
+    x∈x-wff : ∀ {x} → isWFF x (x ⟨∈⟩ x)
+    x∈x-wff = inr refl , inr refl
+
     x∉x-wff : ∀ {x} → isWFF x (x ⟨∉⟩ x)
-    x∉x-wff = (inr refl , inr refl) , tt
+    x∉x-wff = it , tt
 
   -- 公理
   record Axiom : Type₁ where
@@ -221,6 +224,12 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
     ∉₂∅ : x ∉₂ ∅
     ∉₂∅ = ⊥-rec ∘ elim₂
 
+  𝕍∈₁𝕍 : 𝕍 ∈₁ 𝕍
+  𝕍∈₁𝕍 = ∈₁𝕍
+
+  𝕍∈₂𝕍 : 𝕍 ∈₂ 𝕍
+  𝕍∈₂𝕍 = ∈₂𝕍
+
   -- 大全集是均质集
   isUSet𝕍 : isUSet 𝕍
   isUSet𝕍 x = →: (λ _ → ∈₂𝕍) ←: (λ _ → ∈₁𝕍)
@@ -246,6 +255,30 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
     R ∈₁ R ↔⟨ isUSetR R ⟩
     R ∈₂ R ↔⟨ noParadox₂ ⟩
     R ∉₁ R ↔∎
+
+  -- 非良基全集
+  ℕ𝕎𝔽 : Domain
+  ℕ𝕎𝔽 = ｛ x ∣ x ⟨∈⟩ x ｝
+
+  ∈₁ℕ𝕎𝔽 : (x : Domain) → x ∈₁ ℕ𝕎𝔽 ↔ x ∈₂ x
+  ∈₁ℕ𝕎𝔽 x = comprehension _ it .snd x .fst
+
+  ∈₂ℕ𝕎𝔽 : (x : Domain) → x ∈₂ ℕ𝕎𝔽 ↔ x ∈₁ x
+  ∈₂ℕ𝕎𝔽 x = comprehension _ it .snd x .snd
+
+  -- 非良基全集非均质集
+  ¬isUSetℕ𝕎𝔽 : ¬ isUSet ℕ𝕎𝔽
+  ¬isUSetℕ𝕎𝔽 isUSetℕ𝕎𝔽 = noncontradiction $
+    R ∈₁ R ↔⟨ aux R ⟩
+    R ∈₂ R ↔⟨ noParadox₂ ⟩
+    R ∉₁ R ↔∎
+    where
+    aux : (x : Domain) → x ∈₁ x ↔ x ∈₂ x
+    aux x =
+      x ∈₁ x    ↔˘⟨ ∈₂ℕ𝕎𝔽 x ⟩
+      x ∈₂ ℕ𝕎𝔽  ↔˘⟨ isUSetℕ𝕎𝔽 x ⟩
+      x ∈₁ ℕ𝕎𝔽  ↔⟨ ∈₁ℕ𝕎𝔽 x ⟩
+      x ∈₂ x    ↔∎
 
   -- 能构成一类单集
   S₁ : Domain → Type
