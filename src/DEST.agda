@@ -1,3 +1,9 @@
+{-
+  oCaU (choukyuhei@gmail.com) Aug. 2023
+  双面外延集合论 (Double Extension Set Theory)
+  浅编码 (shallow embedding)
+-}
+
 {-# OPTIONS --cubical --safe #-}
 {-# OPTIONS --lossy-unification #-}
 
@@ -51,7 +57,7 @@ record Language : Type₁ where
     ⟨∀⟩_ : (Domain → Formula) → Formula
     ⟨∃⟩_ : (Domain → Formula) → Formula
 
-  -- 合式公式
+  -- 合式公式: 非绑定变量要求均质集
   isWFF : Domain → Formula → Type
   isWFF b ⟨⊥⟩ = ⊤
   isWFF b (x ⟨∈⟩ y) = (isUSet x ∨ x ≡ b) × (isUSet y ∨ y ≡ b)
@@ -61,6 +67,18 @@ record Language : Type₁ where
   isWFF b (φ ⟨→⟩ ψ) = isWFF b φ × isWFF b ψ
   isWFF b (⟨∀⟩ φ) = ∀ x → isWFF b (φ x)
   isWFF b (⟨∃⟩ φ) = ∀ x → isWFF b (φ x)
+
+  -- 谓词 (开公式)
+  Predicate : Type
+  Predicate = Domain → Formula
+
+  -- 合式谓词
+  isWFP : Predicate → Type
+  isWFP P = ∀ {x} → isWFF x (P x)
+
+  -- 合式句子
+  isWFS : Predicate → Type
+  isWFS P = ∀ {x y} → isWFF x (P y)
 
   -- 一类解释
   ⟦_⟧₁ : Formula → Type
@@ -114,7 +132,7 @@ record Language : Type₁ where
   ⟨⊤⟩ : Formula
   ⟨⊤⟩ = ⟨¬⟩ ⟨⊥⟩
 
-  _⟨∉⟩_ : Domain → Domain → Formula
+  _⟨∉⟩_ : Domain → Predicate
   x ⟨∉⟩ y = ⟨¬⟩ (x ⟨∈⟩ y)
 
   -- 合式公式实例
@@ -152,32 +170,32 @@ record Language : Type₁ where
     allUSet→isUSet x = uniformity x x λ y → inl (idfun _)
 
     -- 概括公理承诺集
-    commitment : (Domain → Formula) → Type
-    commitment P = Σ A ∶ Domain , ∀ x → isWFF x (P x) → (x ∈₁ A ↔ ⟦ P x ⟧₂) × (x ∈₂ A ↔ ⟦ P x ⟧₁)
+    commitment : Predicate → Type
+    commitment P = Σ A ∶ Domain , ∀ x → (x ∈₁ A ↔ ⟦ P x ⟧₂) × (x ∈₂ A ↔ ⟦ P x ⟧₁)
     -- 概括公理
-    field comprehension : ∀ P → commitment P
+    field comprehension : ∀ P → isWFP P → commitment P
 
     -- 概括的记法
-    compreh-syntax : (Domain → Formula) → Domain
-    compreh-syntax P = comprehension P .fst
+    compreh-syntax : (P : Predicate) → ⦃ isWFP P ⦄ → Domain
+    compreh-syntax P = comprehension P it .fst
     syntax compreh-syntax (λ x → P) = ｛ x ∣ P ｝
 
-    module _ {P : Domain → Formula} {x : Domain} ⦃ wff : isWFF x (P x) ⦄ where
+    module _ {P : Predicate} {x : Domain} ⦃ wfp : isWFP P ⦄ where
       -- 一类概括引入
       intro₁ : ⟦ P x ⟧₂ → x ∈₁ ｛ x ∣ P x ｝
-      intro₁ = comprehension P .snd x wff .fst .from
+      intro₁ = comprehension P wfp .snd x .fst .from
 
       -- 二类概括引入
       intro₂ : ⟦ P x ⟧₁ → x ∈₂ ｛ x ∣ P x ｝
-      intro₂ = comprehension P .snd x wff .snd .from
+      intro₂ = comprehension P wfp .snd x .snd .from
 
       -- 一类概括消去
       elim₁ : x ∈₁ ｛ x ∣ P x ｝ → ⟦ P x ⟧₂
-      elim₁ = comprehension P .snd x wff .fst .to
+      elim₁ = comprehension P wfp .snd x .fst .to
       
       -- 二类概括消去
       elim₂ : x ∈₂ ｛ x ∣ P x ｝ → ⟦ P x ⟧₁
-      elim₂ = comprehension P .snd x wff .snd .to
+      elim₂ = comprehension P wfp .snd x .snd .to
 
 open Language ⦃...⦄
 open Axiom ⦃...⦄
@@ -219,10 +237,10 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
 
   -- 罗素集无悖论
   noParadox₁ : R ∈₁ R ↔ R ∉₂ R
-  noParadox₁ = R ∈₁ R ↔⟨ comprehension _ .snd R it .fst ⟩ R ∉₂ R ↔∎
+  noParadox₁ = R ∈₁ R ↔⟨ comprehension _ it .snd R .fst ⟩ R ∉₂ R ↔∎
 
   noParadox₂ : R ∈₂ R ↔ R ∉₁ R
-  noParadox₂ = R ∈₂ R ↔⟨ comprehension _ .snd R it .snd ⟩ R ∉₁ R ↔∎
+  noParadox₂ = R ∈₂ R ↔⟨ comprehension _ it .snd R .snd ⟩ R ∉₁ R ↔∎
 
   -- 罗素集非均质集
   ¬isUSetR : ¬ isUSet R
@@ -230,3 +248,37 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
     R ∈₁ R ↔⟨ isUSetR R ⟩
     R ∈₂ R ↔⟨ noParadox₂ ⟩
     R ∉₁ R ↔∎
+
+  -- 公式的对偶性
+  duality : (P : Predicate) → ⦃ isWFS P ⦄ → (x : Domain) → ⟦ P x ⟧₁ ↔ ⟦ P x ⟧₂
+  duality P x = aux
+    where
+    A = ｛ _ ∣ P x ｝
+    𝕍≡A : ⟦ P x ⟧₁ → 𝕍 ≡ A
+    𝕍≡A ⟦Px⟧₁ = extensionality _ _ λ z → →: (λ _ → intro₂ ⟦Px⟧₁) ←: (λ _ → ∈₁𝕍)
+    A≡𝕍 : ⟦ P x ⟧₂ → A ≡ 𝕍
+    A≡𝕍 ⟦Px⟧₂ = extensionality _ _ λ z → →: (λ _ → ∈₂𝕍) ←: (λ _ → intro₁ ⟦Px⟧₂)
+    aux : ⟦ P x ⟧₁ ↔ ⟦ P x ⟧₂
+    _↔_.to aux ⟦Px⟧₁ = ∥∥₁-rec (isProp⟦⟧₂ _) H (excludedMiddle₂ (P x)) where
+      H : ⟦ P x ⟧₂ ⊎ (¬ ⟦ P x ⟧₂) → ⟦ P x ⟧₂
+      H (⊎.inl  ⟦Px⟧₂) = ⟦Px⟧₂
+      H (⊎.inr ¬⟦Px⟧₂) = ⊥-rec $ ¬⟦Px⟧₂ $ elim₁ x∈₁A where
+        x∈₁A : x ∈₁ A
+        x∈₁A = subst (x ∈₁_) (𝕍≡A ⟦Px⟧₁) ∈₁𝕍
+    _↔_.from aux ⟦Px⟧₂ = ∥∥₁-rec (isProp⟦⟧₁ _) H (excludedMiddle₁ (P x)) where
+      H : ⟦ P x ⟧₁ ⊎ (¬ ⟦ P x ⟧₁) → ⟦ P x ⟧₁
+      H (⊎.inl  ⟦Px⟧₁) = ⟦Px⟧₁
+      H (⊎.inr ¬⟦Px⟧₁) = ⊥-rec $ ¬⟦Px⟧₁ $ elim₂ x∈₂A where
+        x∈₂A : x ∈₂ A
+        x∈₂A = subst (x ∈₂_) (sym $ A≡𝕍 ⟦Px⟧₂) ∈₂𝕍
+
+  -- 概括承诺的唯一性 (意味着概括公理是命题)
+  definability : (P : Predicate) → ⦃ isWFS P ⦄ → isProp (commitment P)
+  definability P (A , H₁) (B , H₂) = Σ≡Prop
+    (λ _ → isPropΠ λ _ → isProp× (isProp↔ (isProp∈₁ _ _) (isProp⟦⟧₂ _))
+                                 (isProp↔ (isProp∈₂ _ _) (isProp⟦⟧₁ _)))
+    (extensionality _ _ λ z →
+      z ∈₁ A    ↔⟨ H₁ z .fst ⟩
+      ⟦ P z ⟧₂  ↔˘⟨ duality P z ⟩
+      ⟦ P z ⟧₁  ↔˘⟨ H₂ z .snd ⟩
+      z ∈₂ B    ↔∎)
