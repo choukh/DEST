@@ -249,7 +249,7 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
   noParadox₂ : R ∈₂ R ↔ R ∉₁ R
   noParadox₂ = R ∈₂ R ↔⟨ comprehension _ it .snd R .snd ⟩ R ∉₁ R ↔∎
 
-  -- 罗素集非均质集
+  -- 罗素集是异质集
   ¬isUSetR : ¬ isUSet R
   ¬isUSetR isUSetR = noncontradiction $
     R ∈₁ R ↔⟨ isUSetR R ⟩
@@ -266,7 +266,7 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
   ∈₂ℕ𝕎𝔽 : (x : Domain) → x ∈₂ ℕ𝕎𝔽 ↔ x ∈₁ x
   ∈₂ℕ𝕎𝔽 x = comprehension _ it .snd x .snd
 
-  -- 非良基全集非均质集
+  -- 非良基全集是异质集
   ¬isUSetℕ𝕎𝔽 : ¬ isUSet ℕ𝕎𝔽
   ¬isUSetℕ𝕎𝔽 isUSetℕ𝕎𝔽 = noncontradiction $
     R ∈₁ R ↔⟨ aux R ⟩
