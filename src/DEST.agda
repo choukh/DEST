@@ -3,7 +3,6 @@
 
 module DEST where
 open import Prelim
-open import Cubical.Data.Maybe
 
 -- 语言
 record Language : Type₁ where
@@ -41,54 +40,71 @@ record Language : Type₁ where
   -- 均质集之类型
   USet = Σ Domain isUSet
 
-  -- 公式
   data Formula : Type where
     ⟨⊥⟩ : Formula
-
-    -- 公式只能由一种属于关系构成, 非绑定变量要求是均质集
-    _⟨∈⟩_ : USet → USet → Formula
-    _⟨=⟩_ : USet → USet → Formula
+    -- 公式只能由一种属于关系构成
+    _⟨∈⟩_ : Domain → Domain → Formula
+    _⟨=⟩_ : Domain → Domain → Formula
     _⟨∧⟩_ : Formula → Formula → Formula
     _⟨∨⟩_ : Formula → Formula → Formula
     _⟨→⟩_ : Formula → Formula → Formula
     ⟨∀⟩_ : (Domain → Formula) → Formula
     ⟨∃⟩_ : (Domain → Formula) → Formula
 
-    -- 变量绑定
-    x⟨∈⟩_ : USet → Formula
-    _⟨∈⟩x : USet → Formula
-    x⟨∈⟩x : Formula
-    x⟨=⟩_ : USet → Formula
+  -- 合式公式
+  isWFF : Domain → Formula → Type
+  isWFF b ⟨⊥⟩ = ⊤
+  isWFF b (x ⟨∈⟩ y) = (isUSet x ∨ x ≡ b) × (isUSet y ∨ y ≡ b)
+  isWFF b (x ⟨=⟩ y) = (isUSet x ∨ x ≡ b) × (isUSet y ∨ y ≡ b)
+  isWFF b (φ ⟨∧⟩ ψ) = isWFF b φ × isWFF b ψ
+  isWFF b (φ ⟨∨⟩ ψ) = isWFF b φ × isWFF b ψ
+  isWFF b (φ ⟨→⟩ ψ) = isWFF b φ × isWFF b ψ
+  isWFF b (⟨∀⟩ φ) = ∀ x → isWFF b (φ x)
+  isWFF b (⟨∃⟩ φ) = ∀ x → isWFF b (φ x)
 
   -- 一类解释
-  ⟦_⟧₁ : Formula → Domain → Type
-  ⟦ ⟨⊥⟩ ⟧₁     _ = ⊥
-  ⟦ x ⟨∈⟩ y ⟧₁ _ = fst x ∈₁ fst y
-  ⟦ x ⟨=⟩ y ⟧₁ _ = fst x ≡ fst y
-  ⟦ φ ⟨∧⟩ ψ ⟧₁ x = ⟦ φ ⟧₁ x × ⟦ ψ ⟧₁ x
-  ⟦ φ ⟨∨⟩ ψ ⟧₁ x = ⟦ φ ⟧₁ x ∨ ⟦ ψ ⟧₁ x
-  ⟦ φ ⟨→⟩ ψ ⟧₁ x = ⟦ φ ⟧₁ x → ⟦ ψ ⟧₁ x
-  ⟦ ⟨∀⟩ φ ⟧₁   x = ∀ x → ⟦ φ x ⟧₁ x
-  ⟦ ⟨∃⟩ φ ⟧₁   x = ∃ x ∶ Domain , ⟦ φ x ⟧₁ x
-  ⟦ x⟨∈⟩ y ⟧₁ x = x ∈₁ fst y
-  ⟦ y ⟨∈⟩x ⟧₁ x = fst y ∈₁ x
-  ⟦ x⟨∈⟩x  ⟧₁ x = x ∈₁ x
-  ⟦ x⟨=⟩ y ⟧₁ x = x ∈₁ fst y
+  ⟦_⟧₁ : Formula → Type
+  ⟦ ⟨⊥⟩ ⟧₁ = ⊥
+  ⟦ x ⟨∈⟩ y ⟧₁ = x ∈₁ y
+  ⟦ x ⟨=⟩ y ⟧₁ = x ≡ y
+  ⟦ φ ⟨∧⟩ ψ ⟧₁ = ⟦ φ ⟧₁ × ⟦ ψ ⟧₁
+  ⟦ φ ⟨∨⟩ ψ ⟧₁ = ⟦ φ ⟧₁ ∨ ⟦ ψ ⟧₁
+  ⟦ φ ⟨→⟩ ψ ⟧₁ = ⟦ φ ⟧₁ → ⟦ ψ ⟧₁
+  ⟦ ⟨∀⟩ φ ⟧₁ = ∀ x → ⟦ φ x ⟧₁
+  ⟦ ⟨∃⟩ φ ⟧₁ = ∃ x ∶ Domain , ⟦ φ x ⟧₁
 
   -- 二类解释
-  ⟦_⟧₂ : Formula → Domain → Type
-  ⟦ ⟨⊥⟩ ⟧₂     _ = ⊥
-  ⟦ x ⟨∈⟩ y ⟧₂ _ = fst x ∈₂ fst y
-  ⟦ x ⟨=⟩ y ⟧₂ _ = fst x ≡ fst y
-  ⟦ φ ⟨∧⟩ ψ ⟧₂ x = ⟦ φ ⟧₂ x × ⟦ ψ ⟧₂ x
-  ⟦ φ ⟨∨⟩ ψ ⟧₂ x = ⟦ φ ⟧₂ x ∨ ⟦ ψ ⟧₂ x
-  ⟦ φ ⟨→⟩ ψ ⟧₂ x = ⟦ φ ⟧₂ x → ⟦ ψ ⟧₂ x
-  ⟦ ⟨∀⟩ φ ⟧₂   x = ∀ x → ⟦ φ x ⟧₂ x
-  ⟦ ⟨∃⟩ φ ⟧₂   x = ∃ x ∶ Domain , ⟦ φ x ⟧₂ x
-  ⟦ x⟨∈⟩ y ⟧₂ x = x ∈₂ fst y
-  ⟦ y ⟨∈⟩x ⟧₂ x = fst y ∈₂ x
-  ⟦ x⟨∈⟩x  ⟧₂ x = x ∈₂ x
-  ⟦ x⟨=⟩ y ⟧₂ x = x ∈₂ fst y
+  ⟦_⟧₂ : Formula → Type
+  ⟦ ⟨⊥⟩ ⟧₂ = ⊥
+  ⟦ x ⟨∈⟩ y ⟧₂ = x ∈₂ y
+  ⟦ x ⟨=⟩ y ⟧₂ = x ≡ y
+  ⟦ φ ⟨∧⟩ ψ ⟧₂ = ⟦ φ ⟧₂ × ⟦ ψ ⟧₂
+  ⟦ φ ⟨∨⟩ ψ ⟧₂ = ⟦ φ ⟧₂ ∨ ⟦ ψ ⟧₂
+  ⟦ φ ⟨→⟩ ψ ⟧₂ = ⟦ φ ⟧₂ → ⟦ ψ ⟧₂
+  ⟦ ⟨∀⟩ φ ⟧₂ = ∀ x → ⟦ φ x ⟧₂
+  ⟦ ⟨∃⟩ φ ⟧₂ = ∃ x ∶ Domain , ⟦ φ x ⟧₂
+
+  -- 一类解释为命题
+  isProp⟦⟧₁ : ∀ φ → isProp ⟦ φ ⟧₁
+  isProp⟦⟧₁ ⟨⊥⟩ = isProp⊥
+  isProp⟦⟧₁ (x ⟨∈⟩ y) = isProp∈₁ x y
+  isProp⟦⟧₁ (x ⟨=⟩ y) = isSetDomain x y
+  isProp⟦⟧₁ (φ ⟨∧⟩ ψ) = isProp× (isProp⟦⟧₁ φ) (isProp⟦⟧₁ ψ)
+  isProp⟦⟧₁ (φ ⟨∨⟩ ψ) = squash₁
+  isProp⟦⟧₁ (φ ⟨→⟩ ψ) = isProp→ (isProp⟦⟧₁ ψ)
+  isProp⟦⟧₁ (⟨∀⟩ φ) = isPropΠ λ x → isProp⟦⟧₁ (φ x)
+  isProp⟦⟧₁ (⟨∃⟩ φ) = squash₁
+
+  -- 二类解释为命题
+  isProp⟦⟧₂ : ∀ φ → isProp ⟦ φ ⟧₂
+  isProp⟦⟧₂ ⟨⊥⟩ = isProp⊥
+  isProp⟦⟧₂ (x ⟨∈⟩ y) = isProp∈₂ x y
+  isProp⟦⟧₂ (x ⟨=⟩ y) = isSetDomain x y
+  isProp⟦⟧₂ (φ ⟨∧⟩ ψ) = isProp× (isProp⟦⟧₂ φ) (isProp⟦⟧₂ ψ)
+  isProp⟦⟧₂ (φ ⟨∨⟩ ψ) = squash₁
+  isProp⟦⟧₂ (φ ⟨→⟩ ψ) = isProp→ (isProp⟦⟧₂ ψ)
+  isProp⟦⟧₂ (⟨∀⟩ φ) = isPropΠ λ x → isProp⟦⟧₂ (φ x)
+  isProp⟦⟧₂ (⟨∃⟩ φ) = squash₁
 
   -- 导出符号
   infix 30 ⟨¬⟩_
@@ -98,13 +114,24 @@ record Language : Type₁ where
   ⟨⊤⟩ : Formula
   ⟨⊤⟩ = ⟨¬⟩ ⟨⊥⟩
 
-  -- 公理的
+  _⟨∉⟩_ : Domain → Domain → Formula
+  x ⟨∉⟩ y = ⟨¬⟩ (x ⟨∈⟩ y)
+
+  -- 合式公式实例
+  instance
+    ⊤-wff : ∀ {x} → isWFF x ⟨⊤⟩
+    ⊤-wff = tt , tt
+
+    x∉x-wff : ∀ {x} → isWFF x (x ⟨∉⟩ x)
+    x∉x-wff = (inr refl , inr refl) , tt
+
+  -- 公理
   record Axiom : Type₁ where
     field
       -- 一类排中律
-      excludedMiddle₁ : ∀ φ x → ⟦ φ ⟨∨⟩ ⟨¬⟩ φ ⟧₁ x
+      excludedMiddle₁ : ∀ φ → ⟦ φ ⟨∨⟩ ⟨¬⟩ φ ⟧₁
       -- 二类排中律
-      excludedMiddle₂ : ∀ φ x → ⟦ φ ⟨∨⟩ ⟨¬⟩ φ ⟧₂ x
+      excludedMiddle₂ : ∀ φ → ⟦ φ ⟨∨⟩ ⟨¬⟩ φ ⟧₂
 
     -- 混合外延等价关系
     _≈_ : Domain → Domain → Type
@@ -113,7 +140,7 @@ record Language : Type₁ where
     -- 混合外延公理
     field extensionality : ∀ x y → x ≈ y → x ≡ y
 
-   -- 混合外延等价集是均质集
+    -- 混合外延等价集是均质集
     ≈→isUSet : ∀ {x y} → x ≈ y → isUSet x
     ≈→isUSet {x} {y} x~y z = subst (λ - → (z ∈₁ x) ↔ (z ∈₂ -)) (sym $ extensionality _ _ x~y) (x~y z)
 
@@ -124,34 +151,33 @@ record Language : Type₁ where
     allUSet→isUSet : ∀ x → allUSet x → isUSet x
     allUSet→isUSet x = uniformity x x λ y → inl (idfun _)
 
-    -- 概括公理承诺
-    commitment : Formula → Type
-    commitment φ = Σ A ∶ Domain , ∀ x → (x ∈₁ A ↔ ⟦ φ ⟧₂ x) × (x ∈₂ A ↔ ⟦ φ ⟧₁ x)
-
+    -- 概括公理承诺集
+    commitment : (Domain → Formula) → Type
+    commitment P = Σ A ∶ Domain , ∀ x → isWFF x (P x) → (x ∈₁ A ↔ ⟦ P x ⟧₂) × (x ∈₂ A ↔ ⟦ P x ⟧₁)
     -- 概括公理
-    field comprehension : ∀ φ → commitment φ
+    field comprehension : ∀ P → commitment P
 
     -- 概括的记法
-    compreh-syntax : Formula → Domain
-    compreh-syntax φ = comprehension φ .fst
-    syntax compreh-syntax φ = ｛x∣ φ ｝
+    compreh-syntax : (Domain → Formula) → Domain
+    compreh-syntax P = comprehension P .fst
+    syntax compreh-syntax (λ x → P) = ｛ x ∣ P ｝
 
-    module _ {φ : Formula} {x : Domain} where
+    module _ {P : Domain → Formula} {x : Domain} ⦃ wff : isWFF x (P x) ⦄ where
       -- 一类概括引入
-      intro₁ : ⟦ φ ⟧₂ x → x ∈₁ ｛x∣ φ ｝
-      intro₁ = comprehension φ .snd x .fst .from
+      intro₁ : ⟦ P x ⟧₂ → x ∈₁ ｛ x ∣ P x ｝
+      intro₁ = comprehension P .snd x wff .fst .from
 
       -- 二类概括引入
-      intro₂ : ⟦ φ ⟧₁ x → x ∈₂ ｛x∣ φ ｝
-      intro₂ = comprehension φ .snd x .snd .from
+      intro₂ : ⟦ P x ⟧₁ → x ∈₂ ｛ x ∣ P x ｝
+      intro₂ = comprehension P .snd x wff .snd .from
 
       -- 一类概括消去
-      elim₁ : x ∈₁ ｛x∣ φ ｝ → ⟦ φ ⟧₂ x
-      elim₁ = comprehension φ .snd x .fst .to
-
+      elim₁ : x ∈₁ ｛ x ∣ P x ｝ → ⟦ P x ⟧₂
+      elim₁ = comprehension P .snd x wff .fst .to
+      
       -- 二类概括消去
-      elim₂ : x ∈₂ ｛x∣ φ ｝ → ⟦ φ ⟧₁ x
-      elim₂ = comprehension φ .snd x .snd .to
+      elim₂ : x ∈₂ ｛ x ∣ P x ｝ → ⟦ P x ⟧₁
+      elim₂ = comprehension P .snd x wff .snd .to
 
 open Language ⦃...⦄
 open Axiom ⦃...⦄
@@ -160,11 +186,11 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
 
   -- 大全集
   𝕍 : Domain
-  𝕍 = ｛x∣ ⟨⊤⟩ ｝
+  𝕍 = ｛ _ ∣ ⟨⊤⟩ ｝
 
   -- 空集
   ∅ : Domain
-  ∅ = ｛x∣ ⟨⊥⟩ ｝
+  ∅ = ｛ _ ∣ ⟨⊥⟩ ｝
 
   module _ {x : Domain} where
     ∈₁𝕍 : x ∈₁ 𝕍
@@ -189,14 +215,14 @@ module _ ⦃ ℒ : Language ⦄ ⦃ axiom : Axiom ⦄ where
 
   -- 罗素集
   R : Domain
-  R = ｛x∣ ⟨¬⟩ x⟨∈⟩x ｝
+  R = ｛ x ∣ x ⟨∉⟩ x ｝
 
-    -- 罗素集无悖论
+  -- 罗素集无悖论
   noParadox₁ : R ∈₁ R ↔ R ∉₂ R
-  noParadox₁ = R ∈₁ R ↔⟨ comprehension _ .snd R .fst ⟩ R ∉₂ R ↔∎
+  noParadox₁ = R ∈₁ R ↔⟨ comprehension _ .snd R it .fst ⟩ R ∉₂ R ↔∎
 
   noParadox₂ : R ∈₂ R ↔ R ∉₁ R
-  noParadox₂ = R ∈₂ R ↔⟨ comprehension _ .snd R .snd ⟩ R ∉₁ R ↔∎
+  noParadox₂ = R ∈₂ R ↔⟨ comprehension _ .snd R it .snd ⟩ R ∉₁ R ↔∎
 
   -- 罗素集非均质集
   ¬isUSetR : ¬ isUSet R

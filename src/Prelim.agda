@@ -13,6 +13,8 @@ variable 𝓊 𝓋 𝓌 𝓊′ 𝓋′ 𝓌′ : Level
 open import Cubical.Foundations.Function public
   using (_$_; _∘_; idfun; uncurry)
 
+open import Function public using (it)
+
 open import Cubical.Data.Sigma public
   using (Σ; _,_; fst; snd) renaming (_×_ to infixr 3 _×_)
 
